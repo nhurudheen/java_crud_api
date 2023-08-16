@@ -21,6 +21,13 @@ public class AppConfig extends OncePerRequestFilter {
             throws ServletException, IOException {
         String requestApiKey = request.getHeader("x-api-key");
 
+        if (request.getRequestURI().startsWith("/crud_api/swagger-ui") ||
+                request.getRequestURI().startsWith("/webjars") ||
+                request.getRequestURI().startsWith("/v3/api-docs")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (requestApiKey == null || !requestApiKey.equals(apiKey)) {
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.setContentType("application/json");
