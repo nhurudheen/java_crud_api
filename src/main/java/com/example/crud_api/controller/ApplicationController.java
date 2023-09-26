@@ -8,8 +8,11 @@ package com.example.crud_api.controller;
 import com.example.crud_api.config.Authorization;
 import com.example.crud_api.model.UserLogin;
 import com.example.crud_api.pojo.BaseResponse;
+import com.example.crud_api.pojo.UploadFile;
 import com.example.crud_api.pojo.UserData;
 import com.example.crud_api.service.AppService;
+
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.validation.Valid;
@@ -33,7 +36,13 @@ import org.springframework.web.bind.annotation.*;
 public class ApplicationController {
    @Autowired
    AppService appService;
-   
+
+    @PostMapping("/upload-file")
+    public ResponseEntity uploadFile(@Valid @RequestBody @ModelAttribute UploadFile uploadFile) {
+        BaseResponse baseResponse = appService.uploadUserFile(uploadFile);
+        HttpStatus status = (baseResponse.getStatus()==200)?HttpStatus.OK:HttpStatus.BAD_REQUEST;
+        return new ResponseEntity<>(baseResponse, status);
+    }
    
     @PostMapping("/create-user")
     @ApiOperation(value = "Create user account", notes = "This endpoint is used in creating user account")

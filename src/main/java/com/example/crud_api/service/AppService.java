@@ -6,19 +6,30 @@ package com.example.crud_api.service;
 
 import com.example.crud_api.config.JWTConfig;
 import com.example.crud_api.dto.UserDto;
+import com.example.crud_api.model.UploadFileEntity;
 import com.example.crud_api.model.UserEntity;
 import com.example.crud_api.model.UserLogin;
 import com.example.crud_api.pojo.BaseResponse;
+import com.example.crud_api.pojo.UploadFile;
 import com.example.crud_api.pojo.UserData;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.logging.Logger;
 
+import com.example.crud_api.repository.UploadFileRepo;
 import com.example.crud_api.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.example.crud_api.config.AppConstant.*;
 
@@ -31,6 +42,34 @@ public class AppService {
     private static final Logger LOG = Logger.getLogger(AppService.class.getName());
     @Autowired
     UserRepo userRepo;
+    @Autowired
+    UploadFileRepo uploadFileRepo;
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+    public BaseResponse uploadUserFile(UploadFile uploadFile) {
+
+        BaseResponse baseResponse =new BaseResponse(true);
+    try{
+
+        MultipartFile resumeFile = uploadFile.getResume();
+        String fileName = resumeFile.getOriginalFilename();
+        String systemRoot = System.getProperty("user.dir");
+        Path uploadPath = Paths.get(systemRoot, uploadDir, fileName);
+       File uploadtheFile = uploadPath.toFile();
+        resumeFile.transferTo(uploadtheFile);
+
+        UploadFileEntity uploadFileEntity = new UploadFileEntity(uploadFile);
+        uploadFileEntity.setResume(uploadtheFile.getAbsolutePath());
+        uploadFileRepo.save(uploadFileEntity);
+
+         baseResponse.setStatus(200);
+         baseResponse.setMessage("File Upload Successful");
+         baseResponse.setResult(new Object[0]);}
+    catch(IOException e){
+        LOG.warning(e.getMessage());
+    }
+         return  baseResponse;
+    }
 
     public BaseResponse createUser(UserData userData) {
         BaseResponse baseResponse = new BaseResponse(true);
